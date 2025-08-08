@@ -2,7 +2,19 @@ const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerWebpackPlugin = require('css-minimizer-webpack-plugin');
+const EslintWebpackPlugin = require('eslint-webpack-plugin');
 
+const optimization = () => ({
+    splitChunks: {
+        chunks: 'all',
+    },
+    minimizer: [
+        new CssMinimizerWebpackPlugin(),
+        new TerserPlugin()
+    ]
+});
 
 module.exports = {
     mode: 'development',
@@ -17,6 +29,10 @@ module.exports = {
         hot: false
     },
     plugins: [
+        new EslintWebpackPlugin({
+            extensions: ['js'],
+            fix: true
+        }),
         new HTMLWebpackPlugin({ template: 'index.html' }),
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
@@ -54,6 +70,19 @@ module.exports = {
                 ],
             },
             {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            '@babel/preset-env',
+                            '@babel/preset-typescript'
+                        ]
+                    }
+                }
+            },
+            {
                 test: /\.s[ac]ss$/,
                 use: [
                     {
@@ -68,9 +97,5 @@ module.exports = {
             },
         ]
     },
-    optimization: {
-        splitChunks: {
-            chunks: 'all'
-        }
-    }
+    optimization: optimization(),
 };
